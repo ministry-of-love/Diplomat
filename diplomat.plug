@@ -1,11 +1,11 @@
-[CORE]
+[Core]
 Name = Diplomat
 Module = diplomat
 
-[PYTHON]
+[Python]
 Version = 2+
 
-[DOCUMENTATION]
-Description = "Plugin for querying and managing a list of characters and their assoicated standings and tags in Eve Online"
+[Documentation]
+Description = Plugin for querying and managing a list of characters and their associated standings and tags in Eve Online
 
 
