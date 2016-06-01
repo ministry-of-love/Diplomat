@@ -1,0 +1,11 @@
+[CORE]
+Name = Diplomat
+Module = diplomat
+
+[PYTHON]
+Version = 2+
+
+[DOCUMENTATION]
+Description = "Plugin for querying and managing a list of characters and their assoicated standings and tags in Eve Online"
+
+
