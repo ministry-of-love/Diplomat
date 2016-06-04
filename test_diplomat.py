@@ -1,7 +1,6 @@
 import diplomat
-
 from errbot.backends.test import testbot
-from errbot import plugin_manager
+
 
 class TestDiplomat(object):
     extra_plugin_dir = 'C:\\Users\\YatesDisgrace\\PycharmProjects\\errbot\\diplomat'
@@ -24,15 +23,13 @@ class TestDiplomat(object):
         assert 'cool' in diplomat_plugin.diplomat['logical fallacy']['tags']
         assert diplomat_plugin.diplomat['logical fallacy']['standing'] == 10.0
 
-
         testbot.push_message('!diplomat isred Fabulous Andy')
         expected = "fabulous andy does not exist in Diplomat."
         result = testbot.pop_message()
         assert expected == result
 
         testbot.push_message('!diplomat isred Brad Neece')
-        expected = "brad neece\nStanding: -5.0" + \
-             "\nTags: annoying, edgey, misunderstood, summercamp, bff"
+        expected = "brad neece\nStanding: -5.0\nTags: annoying, edgey, misunderstood, summercamp, bff"
         result = testbot.pop_message()
         assert expected == result
 
@@ -61,16 +58,14 @@ class TestDiplomat(object):
         # Test for empty argument string
         # Expected result: Print error message and proper syntax
         testbot.push_message('!diplomat addtag')
-        expected = "Please include a tag and character name" + \
-                       "\nProper syntax is !diplomat addtag <tag> <name>"
+        expected = "Please include a tag and character name\nProper syntax is !diplomat addtag <tag> <name>"
         result = testbot.pop_message()
         assert expected == result
 
         # Test for single argument
         # Expected result: Print error message including proper syntax
         testbot.push_message('!diplomat addtag miniluv')
-        expected = "Please include a name of a character to check." + \
-                    "\nProper syntax is !diplomat addtag <tag> <name>"
+        expected = "Please include a name of a character to check.\nProper syntax is !diplomat addtag <tag> <name>"
         result = testbot.pop_message()
         assert expected == result
 
@@ -174,7 +169,7 @@ class TestDiplomat(object):
 
         testbot.push_message("!diplomat addchar 6ab miniluv boneytooth thompkins isk-chip")
         expected = "Please include the standing as a valid numeric (-10.0 ... 10.0)" + \
-                          "\nProper syntax is !diplomat addchar <standing> <tag> <name>"
+            "\nProper syntax is !diplomat addchar <standing> <tag> <name>"
         result = testbot.pop_message()
         assert expected == result
 
@@ -182,7 +177,7 @@ class TestDiplomat(object):
         # Expected result: Print error message and proper syntax
         testbot.push_message('!diplomat addchar -10.0')
         expected = "Please include a single tag for the character that will be added to Diplomat." + \
-                        "\nProper syntax is !diplomat addchar <standing> <tag> <name>"
+            "\nProper syntax is !diplomat addchar <standing> <tag> <name>"
         result = testbot.pop_message()
         assert expected == result
 
@@ -190,7 +185,7 @@ class TestDiplomat(object):
         # Expected result: Return  error message with proper syntax
         testbot.push_message('!diplomat addchar +10.0 cool')
         expected = "Please include a name for the character that will be added to Diplomat." + \
-                        "\nProper syntax is !diplomat addchar <standing> <tag> <name>"
+            "\nProper syntax is !diplomat addchar <standing> <tag> <name>"
         result = testbot.pop_message()
         assert expected == result
 
@@ -223,5 +218,5 @@ class TestDiplomat(object):
         assert 'good' in diplomat_plugin.diplomat['boneytooth thompkins isk-chip']['tags']
         assert diplomat_plugin.diplomat['boneytooth thompkins isk-chip']['standing'] == -10.0
 
-    def test_write_dictionary(self, testbot):
-        pass
+    def test_diplomat_save(self, testbot):
+        testbot.push_message('!diplomat save')
