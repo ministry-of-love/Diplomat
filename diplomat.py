@@ -1,9 +1,18 @@
-from errbot import BotPlugin, arg_botcmd, botcmd
-import json, os
-from errbot import plugin_manager
+import json
+import os
 
+from errbot import BotPlugin, botcmd
+
+from config import BOT_DATA_DIR
+
+
+# NB: This will produce an error on Windows systems if the BOT_DATA_DIR is something like C:\Users\...
+# Due to the fact that \Us is invalid unicode
 class Diplomat(BotPlugin):
     """Diplomat plugin for Luvbot"""
+
+    def __init__(self):
+        self.diplomat = {}
 
     def activate(self):
         """
@@ -16,7 +25,7 @@ class Diplomat(BotPlugin):
             self.diplomat = {}
 
         self.log.info("Loading character database.")
-        with open('C:\\Users\\YatesDisgrace\\PycharmProjects\\errbot\\diplomat\\test.json', 'r') as infile:
+        with open(BOT_DATA_DIR + os.sep + "standings.json", 'r') as infile:
             # read in each file json entry
             # create new value in associative array s.t.
             # diplomat['character_name'] = [tag1, ..., tagn]
@@ -25,52 +34,8 @@ class Diplomat(BotPlugin):
             # self.log.info('Loaded character database successfully.')
 
     def deactivate(self):
-        self.write_dictionary()
+        self.diplomat_save()
         super(Diplomat, self).deactivate()
-
-    # def get_configuration_template(self):
-    #     """
-    #     Defines the configuration structure this plugin supports
-    #
-    #     You should delete it if your plugin doesn't use any configuration like this
-    #     """
-    #     return {'EXAMPLE_KEY_1': "Example value",
-    #             'EXAMPLE_KEY_2': ["Example", "Value"]
-    #            }
-    #
-    # def check_configuration(self, configuration):
-    #     """
-    #     Triggers when the configuration is checked, shortly before activation
-    #
-    #     Raise a errbot.utils.ValidationException in case of an error
-    #
-    #     You should delete it if you're not using it to override any default behaviour
-    #     """
-    #     super(Diplo, self).check_configuration(configuration)
-    #
-    # def callback_connect(self):
-    #     """
-    #     Triggers when bot is connected
-    #
-    #     You should delete it if you're not using it to override any default behaviour
-    #     """
-    #     pass
-    #
-    # def callback_message(self, message):
-    #     """
-    #     Triggered for every received message that isn't coming from the bot itself
-    #
-    #     You should delete it if you're not using it to override any default behaviour
-    #     """
-    #     pass
-    #
-    # def callback_botmessage(self, message):
-    #     """
-    #     Triggered for every message that comes from the bot itself
-    #
-    #     You should delete it if you're not using it to override any default behaviour
-    #     """
-    #     pass
 
     @botcmd
     def diplomat_isred(self, message, args):
@@ -88,8 +53,6 @@ class Diplomat(BotPlugin):
                        "\nTags: " + ', '.join(self.diplomat[args]['tags'])
         return response
 
-    # @arg_botcmd('--name', dest='name', type=str, default=None)
-    # @arg_botcmd('--tag', dest='tag', type=str, default=None)
     @botcmd
     def diplomat_addtag(self, message, args):
         # Adds a tag to a character if it exists in the red list
@@ -112,16 +75,15 @@ class Diplomat(BotPlugin):
                 # self.log.debug("Character: " + name)
             if name is "":
                 response = "Please include a name of a character to check." + \
-                    "\nProper syntax is !diplomat addtag <tag> <name>"
+                           "\nProper syntax is !diplomat addtag <tag> <name>"
             elif name not in self.diplomat:
                 response = "Character " + name + " does not exist in Diplomat."
             else:
                 self.diplomat[name]['tags'].append(tag)
                 response = "Added tag '" + tag + "' to character '" + name + "'"
+                self.diplomat_save()
         return response
 
-    # @arg_botcmd('--name', dest='name', type=str, default=None)
-    # @arg_botcmd('--tag', dest='tag', type=str, default=None)
     @botcmd
     def diplomat_remtag(self, message, args):
         self.log.info("Attempting to remove tag: " + message.body)
@@ -149,29 +111,26 @@ class Diplomat(BotPlugin):
                 if tag in self.diplomat[name]['tags']:
                     self.diplomat[name]['tags'].remove(tag)
                     response = "Removed tag '" + tag + "' from character '" + name + "'"
+                    self.diplomat_save()
                 else:
                     response = "Tag '" + tag + "' does not exist for character '" + name + "'"
         return response
 
-    # @arg_botcmd('--name', dest='name', type=str, default=None)
     @botcmd
     def diplomat_remchar(self, message, args):
         response = ""
         args = args.lower().strip()
         if args is "":
             response = "Please include the name of a character to remove from Diplomat." + \
-                "\nProper syntax is !diplomat remchar <name>"
+                       "\nProper syntax is !diplomat remchar <name>"
         elif args not in self.diplomat:
             response = args + " does not exist in Diplomat."
         else:
             del self.diplomat[args]
             response = "Removed character '" + args + "' from Diplomat."
-            self.write_dictionary()
+            self.diplomat_save()
         return response
 
-    # @arg_botcmd('--name', dest='name', type=str, default=None)
-    # @arg_botcmd('--standing', dest='standing', type=int, default=0.0)
-    # @arg_botcmd('--tag', dest='tag', type=str, default=None)
     @botcmd
     def diplomat_addchar(self, message, args):
         self.log.debug("Adding character to Diplomat with message body: " + args)
@@ -185,7 +144,7 @@ class Diplomat(BotPlugin):
         # Check to see if arg string is empty; if so, return error message with proper syntax
         if args == "":
             response = "Please include a standing, tag and character name to add to Diplomat." + \
-                   "\nProper syntax is !diplomat addchar <standing> <tag> <name>"
+                       "\nProper syntax is !diplomat addchar <standing> <tag> <name>"
         else:
             # arg string is not empty, parse standing from args
 
@@ -206,9 +165,9 @@ class Diplomat(BotPlugin):
 
             # Check to see if standing represents a valid float
             # If not valid float, return error message indicating correct syntax for standing
-            if not self._isStanding(standing):
+            if not self.is_standing(standing):
                 response = "Please include the standing as a valid numeric (-10.0 ... 10.0)" + \
-                          "\nProper syntax is !diplomat addchar <standing> <tag> <name>"
+                           "\nProper syntax is !diplomat addchar <standing> <tag> <name>"
             # Standing tag is okay, begin parsing the tag argument from arg string
             else:
                 # -1 index of whitespace indicates that there is no more whitespace in arg string
@@ -224,7 +183,7 @@ class Diplomat(BotPlugin):
                 self.log.debug("tag is: " + tag)
                 if tag == "":
                     response = "Please include a single tag for the character that will be added to Diplomat." + \
-                        "\nProper syntax is !diplomat addchar <standing> <tag> <name>"
+                               "\nProper syntax is !diplomat addchar <standing> <tag> <name>"
                 else:
                     # Parse name from arg string
                     # Name should be only part of arg string remaining
@@ -238,19 +197,25 @@ class Diplomat(BotPlugin):
                             self.diplomat[name]['standing'] = standing
                             self.diplomat[name]['tags'] = []
                             self.diplomat[name]['tags'].append(tag)
-                            response = "Added Character: '" + args + "'\nStanding: " + str(self.diplomat[args]['standing']) + \
-                                       "\nTags: " + ', '.join(self.diplomat[args]['tags'])
-                            self.write_dictionary()
+                            response = "Added Character: '" + args + "'\nStanding: " + str(
+                                self.diplomat[args]['standing']) + "\nTags: " + ', '.join(self.diplomat[args]['tags'])
+                            self.diplomat_save()
                         else:
                             response = "Character '" + name + "' already exists in Diplomat."
         return response
 
-    def write_dictionary(self):
-        # self.log.info('Saving Diplomat to disk.')
-        # Write dictionary to disk
-        # self.log.info('Diplomat successfully saved to disk')
-        pass
-    def _isStanding(self, value):
+    @botcmd
+    def diplomat_save(self):
+        self.log.info('Saving Diplomat to disk.')
+        # TODO This probably needs to be fixed to not be shitty and windows bound (though it should work in Linux)
+        save_location = BOT_DATA_DIR + os.sep + 'standings.json'
+        # save_location = save_location.replace('\\', '\\\\')
+        with open(save_location, 'w') as outfile:
+            s = json.dumps(self.diplomat)
+            outfile.write(s)
+        self.log.info('Diplomat successfully diploamt_saved to disk')
+
+    def is_standing(self, value):
         try:
             float(value)
             return True
