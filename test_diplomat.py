@@ -66,7 +66,7 @@ class TestDiplomat(object):
         expected = "Added tag 'miniluv' to character 'boneytooth thompkins isk-chip'"
         result = testbot.pop_message()
         assert expected == result
-        plugin_names = plugin_manager.BotPluginManager.get_all_plugin_names(plugin_manager.BotPluginManager)
+        # plugin_names = plugin_manager.BotPluginManager.get_all_plugin_names(plugin_manager.BotPluginManager)
         # assert 'miniluv' in diplomat_plugin.diplomat['boneytooth thompkins isk-chip']['tags']
 
     def test_removetag(self, testbot):
