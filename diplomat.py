@@ -76,7 +76,6 @@ class Diplomat(BotPlugin):
     def diplomat_isred(self, message, args):
         # Check to determine if the character name passed to the function is red
         # If it exists in the player_list, return
-        self.log.debug("Plugin Name" + plugin_manager.BotPluginManager.get_all_plugin_names())
         self.log.debug("Checking diplomat for name: " + args)
         response = ""
         args = args.lower()
